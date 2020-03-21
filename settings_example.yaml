@@ -1,0 +1,13 @@
+# See https://vandevliet.me/bot-automatically-responds-comments-facebook/ for info on these values
+facebook:
+    app:
+        app_id: appidhere
+        app_secret: appsecrethere
+        long_lived_access_token: appaccesstokenhere
+    page:
+        page_id: pageidhere
+        post_id_to_monitor: postidhere
+
+# See http://docs.peewee-orm.com/en/latest/peewee/database.html#using-mysql
+#     http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#db-url
+db: mysql://user:passwd@ip:port/my_db

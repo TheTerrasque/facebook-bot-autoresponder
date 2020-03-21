@@ -1,2 +1,5 @@
 facebook-sdk==2.0.0
 Pillow==6.2.0
+mysql-connector
+peewee
+pyyaml
