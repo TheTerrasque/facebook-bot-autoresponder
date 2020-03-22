@@ -2,7 +2,7 @@ from yaml import load
 import argparse
 
 parser = argparse.ArgumentParser(description='Facebook auto commenter')
-parser.add_argument('configfile', metavar='N', type=argparse.FileType("r"), default="settings.yaml",
+parser.add_argument('configfile', metavar='CONFIGFILE', type=argparse.FileType("r"), default="settings.yaml",
                     help='Config YAML')
 
 
