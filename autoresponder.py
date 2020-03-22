@@ -7,9 +7,11 @@ https://vandevliet.me/bot-automatically-responds-comments-facebook/
 """
 
 from time import sleep
+from datetime import datetime
 import facebook
 
 from lib.settings import get_settings
+from lib.db import FacebookComment, FacebookReply
 
 SETTINGS = get_settings()
 
@@ -22,16 +24,30 @@ LONG_LIVED_ACCESS_TOKEN = SETTINGS["facebook"]["app"]["long_lived_access_token"]
 
 COMBINED_POST_ID_TO_MONITOR = '%s_%s' % (PAGE_ID, POST_ID_TO_MONITOR)
 
+def comment_on_comment(graph, reply):
+    print("Let's comment!")
+    # like the comment
+    #graph.put_like(object_id=comment_id)
+
+    graph.put_object(parent_object=reply.postid, 
+        connection_name='comments',
+        message=reply.message)
+    
+    reply.responded = datetime.utcnow()
+    reply.save()
+
+
 def handle_comments(comments):
      for comment in comments['data']:
-
-            # if we can't find it in our comments database, it means
-            # we haven't commented on it yet
-            if not Posts().get(comment['id']):
-                # comment_on_comment(graph, comment)
-
-                # add it to the database, so we don't comment on it again
-                Posts().add(comment['id'])
+            if not FacebookComment.get(FacebookComment.postid == comment['id']):
+                FacebookComment.create(
+                    postid=comment['id'], 
+                    added=datetime.utcnow(),
+                    fromname = comment['from']['name'],
+                    fromid = comment['from']['id'],
+                    message = comment['message'],
+                    appid = APP_ID
+                )
 
 
 def monitor_fb_comments():
@@ -40,8 +56,6 @@ def monitor_fb_comments():
     # that infinite loop tho
     while True:
         print('I spy with my little eye...🕵️ ')
-        sleep(5)
-
         # get the comments
         comments = graph.get_connections(COMBINED_POST_ID_TO_MONITOR,
                                          'comments',
@@ -58,6 +72,9 @@ def monitor_fb_comments():
                                              order='chronological')
             handle_comments(comments)
 
+        for reply in FacebookReply.select().where(FacebookReply.responded == None & FacebookReply.appid == APP_ID):
+            comment_on_comment(reply)
+        sleep(5)
 
 # started at the bottom, etc
 if __name__ == '__main__':

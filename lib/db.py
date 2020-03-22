@@ -5,9 +5,25 @@ connstring = get_settings()["db"]
 
 db = MySQLDatabase(connstring)
 
-class Post(Model):
-    postid = CharField()
-    added = DateField()
+class FacebookComment(Model):
+    postid = CharField(index=True)
+    added = DateTimeField()
+    fromname = CharField()
+    fromid = CharField()
+    message = CharField()
+    appid = CharField(index=True)
 
     class Meta:
         database = db # This model uses the "people.db" database.
+
+class FacebookReply(Model):
+    postid = CharField()
+    message = CharField()
+    responded = DateTimeField(null=True, index=True)
+    appid = CharField(index=True)
+
+db.connect()
+try:
+    db.create_tables([FacebookComment])
+except:
+    pass
