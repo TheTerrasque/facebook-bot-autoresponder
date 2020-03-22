@@ -11,3 +11,4 @@ facebook:
 # See http://docs.peewee-orm.com/en/latest/peewee/database.html#using-mysql
 #     http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#db-url
 db: mysql://user:passwd@ip:port/my_db
+apptag: default

@@ -11,7 +11,7 @@ class FacebookComment(Model):
     fromname = CharField()
     fromid = CharField()
     message = CharField()
-    appid = CharField(index=True)
+    threadid = CharField(index=True)
 
     class Meta:
         database = db # This model uses the "people.db" database.
@@ -20,7 +20,7 @@ class FacebookReply(Model):
     postid = CharField()
     message = CharField()
     responded = DateTimeField(null=True, index=True)
-    appid = CharField(index=True)
+    threadid = CharField(index=True)
 
 db.connect()
 try:

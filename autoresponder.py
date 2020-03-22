@@ -18,6 +18,8 @@ SETTINGS = get_settings()
 APP_ID = SETTINGS["facebook"]["app"]["app_id"]
 APP_SECRET = SETTINGS["facebook"]["app"]["app_secret"]
 
+APP_TAG = SETTINGS["apptag"]
+
 PAGE_ID = SETTINGS["facebook"]["app"]["page_id"]
 POST_ID_TO_MONITOR = SETTINGS["facebook"]["app"]["post_id_to_monitor"]
 LONG_LIVED_ACCESS_TOKEN = SETTINGS["facebook"]["app"]["long_lived_access_token"]
@@ -35,7 +37,6 @@ def comment_on_comment(graph, reply):
     reply.responded = datetime.utcnow()
     reply.save()
 
-
 def handle_comments(comments):
      for comment in comments['data']:
         if not FacebookComment.get(FacebookComment.postid == comment['id']):
@@ -45,7 +46,7 @@ def handle_comments(comments):
                 fromname = comment['from']['name'],
                 fromid = comment['from']['id'],
                 message = comment['message'],
-                appid = APP_ID
+                threadid = COMBINED_POST_ID_TO_MONITOR
             )
 
 
@@ -71,7 +72,7 @@ def monitor_fb_comments():
                                              order='chronological')
             handle_comments(comments)
 
-        for reply in FacebookReply.select().where(FacebookReply.responded == None & FacebookReply.appid == APP_ID):
+        for reply in FacebookReply.select().where(FacebookReply.responded == None & FacebookReply.threadid == COMBINED_POST_ID_TO_MONITOR):
             comment_on_comment(reply)
         sleep(5)
 
