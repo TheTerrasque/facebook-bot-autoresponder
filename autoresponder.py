@@ -11,20 +11,14 @@ from datetime import datetime
 import facebook
 
 from lib.settings import get_settings
-from lib.db import FacebookComment, FacebookReply
+from lib.db import FacebookComment, FacebookReply, FacebookThread
 
 SETTINGS = get_settings()
 
 APP_ID = SETTINGS["facebook"]["app"]["app_id"]
 APP_SECRET = SETTINGS["facebook"]["app"]["app_secret"]
-
-APP_TAG = SETTINGS["apptag"]
-
-PAGE_ID = SETTINGS["facebook"]["app"]["page_id"]
-POST_ID_TO_MONITOR = SETTINGS["facebook"]["app"]["post_id_to_monitor"]
 LONG_LIVED_ACCESS_TOKEN = SETTINGS["facebook"]["app"]["long_lived_access_token"]
 
-COMBINED_POST_ID_TO_MONITOR = '%s_%s' % (PAGE_ID, POST_ID_TO_MONITOR)
 
 def comment_on_comment(graph, reply):
     # like the comment
@@ -37,7 +31,7 @@ def comment_on_comment(graph, reply):
     reply.responded = datetime.utcnow()
     reply.save()
 
-def handle_comments(comments):
+def handle_comments(comments, thread):
      for comment in comments['data']:
         if not FacebookComment.get(FacebookComment.postid == comment['id']):
             FacebookComment.create(
@@ -46,9 +40,25 @@ def handle_comments(comments):
                 fromname = comment['from']['name'],
                 fromid = comment['from']['id'],
                 message = comment['message'],
-                threadid = COMBINED_POST_ID_TO_MONITOR
+                threadid = thread
             )
 
+def handle_comments(graph):
+    for thread in FacebookThread.select().where(FacebookThread.active == true):
+        comments = graph.get_connections(thread.get_combined(),
+                                         'comments',
+                                         order='chronological')
+
+        handle_comments(comments, thread)
+
+        # while there is a paging key in the comments, let's loop them and do exactly the same
+        # if you have a better way to do this, PRs are welcome :)
+        while 'paging' in comments:
+            comments = graph.get_connections(thread.get_combined(),
+                                             'comments',
+                                             after=comments['paging']['cursors']['after'],
+                                             order='chronological')
+            handle_comments(comments, thread)
 
 def monitor_fb_comments():
     # create graph
@@ -72,7 +82,7 @@ def monitor_fb_comments():
                                              order='chronological')
             handle_comments(comments)
 
-        for reply in FacebookReply.select().where(FacebookReply.responded == None & FacebookReply.threadid == COMBINED_POST_ID_TO_MONITOR):
+        for reply in FacebookReply.select().where(FacebookReply.responded == None):
             comment_on_comment(reply)
         sleep(5)
 

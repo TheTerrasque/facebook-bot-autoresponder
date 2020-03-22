@@ -4,11 +4,7 @@ facebook:
         app_id: app_id_here
         app_secret: app_secret_here
         long_lived_access_token: app_access_token_here
-    page:
-        page_id: page_id_here
-        post_id_to_monitor: post_id_here
 
 # See http://docs.peewee-orm.com/en/latest/peewee/database.html#using-mysql
 #     http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#db-url
 db: mysql://user:passwd@ip:port/my_db
-apptag: default
